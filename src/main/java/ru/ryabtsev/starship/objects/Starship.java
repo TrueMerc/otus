@@ -40,7 +40,11 @@ public class Starship implements Movable, Rotatable {
 
     @Override
     public void moveTo(final Vector position) {
-        this.position = Objects.requireNonNull(position);
+        try {
+            this.position = Objects.requireNonNull(position);
+        } catch (NullPointerException e) {
+            throw new IllegalStateException("Can't move object to undefined position", e);
+        }
     }
 
     @Override
