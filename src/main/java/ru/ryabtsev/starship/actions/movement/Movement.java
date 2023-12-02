@@ -1,8 +1,9 @@
 package ru.ryabtsev.starship.actions.movement;
 
 import java.util.Objects;
+import ru.ryabtsev.starship.actions.Command;
 
-public class Movement {
+public class Movement implements Command {
 
     private final Movable object;
 
