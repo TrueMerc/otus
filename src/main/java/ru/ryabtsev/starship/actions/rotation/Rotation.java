@@ -1,6 +1,8 @@
 package ru.ryabtsev.starship.actions.rotation;
 
-public class Rotation {
+import ru.ryabtsev.starship.actions.Command;
+
+public class Rotation implements Command {
 
     private final Rotatable rotatable;
 
