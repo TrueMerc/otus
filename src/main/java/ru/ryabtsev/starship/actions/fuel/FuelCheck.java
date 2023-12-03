@@ -3,6 +3,9 @@ package ru.ryabtsev.starship.actions.fuel;
 import ru.ryabtsev.starship.actions.Command;
 import ru.ryabtsev.starship.exceptions.LowFuelLevelException;
 
+/**
+ * The class that is implementing command associated with fuel check.
+ */
 public class FuelCheck implements Command {
 
     private static final String LOW_FUEL_LEVEL_MESSAGE = "Fuel level is to low %.3f, %.3f amount of fuel required";

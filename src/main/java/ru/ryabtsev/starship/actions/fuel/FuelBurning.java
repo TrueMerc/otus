@@ -2,6 +2,9 @@ package ru.ryabtsev.starship.actions.fuel;
 
 import ru.ryabtsev.starship.actions.Command;
 
+/**
+ * The class that is implementing command associated with fuel burning.
+ */
 public class FuelBurning implements Command {
 
     private final FuelConsumer fuelConsumer;

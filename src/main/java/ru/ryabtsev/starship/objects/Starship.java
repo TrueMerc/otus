@@ -4,6 +4,7 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import ru.ryabtsev.starship.actions.fuel.FuelConsumer;
 import ru.ryabtsev.starship.actions.movement.Movable;
 import ru.ryabtsev.starship.actions.movement.Vector;
 import ru.ryabtsev.starship.actions.rotation.Rotatable;
@@ -11,7 +12,7 @@ import ru.ryabtsev.starship.actions.rotation.Rotatable;
 @Getter
 @AllArgsConstructor
 @Builder(setterPrefix = "with")
-public class Starship implements Movable, Rotatable {
+public class Starship implements Movable, Rotatable, FuelConsumer {
 
     private Vector position;
 
@@ -20,6 +21,8 @@ public class Starship implements Movable, Rotatable {
     private double course;
 
     private double angularVelocity;
+
+    private double fuelLevel;
 
     public Starship(final Vector position, final Vector velocity) {
         this.position = position;
@@ -42,7 +45,7 @@ public class Starship implements Movable, Rotatable {
     public void moveTo(final Vector position) {
         try {
             this.position = Objects.requireNonNull(position);
-        } catch (NullPointerException e) {
+        } catch (final NullPointerException e) {
             throw new IllegalStateException("Can't move object to undefined position", e);
         }
     }
@@ -60,5 +63,15 @@ public class Starship implements Movable, Rotatable {
     @Override
     public void changeCourse(final double course) {
         this.course = course;
+    }
+
+    @Override
+    public void fuel(final double amount) {
+        fuelLevel += amount;
+    }
+
+    @Override
+    public void consume(final double amount) {
+        fuelLevel -= amount;
     }
 }
