@@ -6,17 +6,18 @@ import lombok.Builder;
 import lombok.Getter;
 import ru.ryabtsev.starship.actions.fuel.FuelConsumer;
 import ru.ryabtsev.starship.actions.movement.Movable;
+import ru.ryabtsev.starship.actions.movement.ObjectWithChangeableVelocity;
 import ru.ryabtsev.starship.actions.movement.Vector;
 import ru.ryabtsev.starship.actions.rotation.Rotatable;
 
 @Getter
 @AllArgsConstructor
 @Builder(setterPrefix = "with")
-public class Starship implements Movable, Rotatable, FuelConsumer {
+public class Starship implements Movable, Rotatable, FuelConsumer, ObjectWithChangeableVelocity {
 
     private Vector position;
 
-    private final Vector velocity;
+    private Vector velocity;
 
     private double course;
 
@@ -73,5 +74,10 @@ public class Starship implements Movable, Rotatable, FuelConsumer {
     @Override
     public void consume(final double amount) {
         fuelLevel -= amount;
+    }
+
+    @Override
+    public void changeVelocity(Vector velocity) {
+        this.velocity = velocity;
     }
 }

@@ -11,12 +11,13 @@ public class Movement implements Command {
         this.object = object;
     }
 
+    @Override
     public void execute() {
         try {
             final Vector position = Objects.requireNonNull(object.getPosition());
             final Vector velocity = Objects.requireNonNull(object.getVelocity());
             object.moveTo(new Vector(position.x() + velocity.x(), position.y() + velocity.y()));
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             throw new IllegalStateException("Can't perform movement operation", e);
         }
     }
