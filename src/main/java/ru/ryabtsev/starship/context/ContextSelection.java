@@ -13,6 +13,9 @@ public class ContextSelection {
     }
 
     public ApplicationContext getChild(final String name) {
+        if (applicationContext.getName().equals(name)) {
+            return applicationContext;
+        }
         final List<ApplicationContext> children = applicationContext.getChildren();
         if (children.isEmpty()) {
             return null;
@@ -21,9 +24,13 @@ public class ContextSelection {
             if (child instanceof SimpleApplicationContext typedChild) {
                 if (name.equals(typedChild.getName())) {
                     return child;
-                } else {
-                    return new ContextSelection(child).getChild(name);
                 }
+            }
+        }
+        for (ApplicationContext child : children) {
+            final ApplicationContext internalChild = new ContextSelection(child).getChild(name);
+            if (internalChild != null) {
+                return internalChild;
             }
         }
         return null;

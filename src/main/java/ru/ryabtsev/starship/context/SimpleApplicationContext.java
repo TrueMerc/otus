@@ -1,9 +1,9 @@
 package ru.ryabtsev.starship.context;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -30,7 +30,7 @@ public class SimpleApplicationContext implements ApplicationContext {
                         this, (String) objects[0], (Function<Object[], Object>) objects[1]
                 )
         );
-        this.children = new ArrayList<>();
+        this.children = Collections.synchronizedList(new ArrayList<>());
         this.name = name;
     }
 
