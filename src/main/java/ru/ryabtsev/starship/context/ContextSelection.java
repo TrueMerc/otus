@@ -2,6 +2,9 @@ package ru.ryabtsev.starship.context;
 
 import java.util.List;
 
+/**
+ * Dependency that allows to select context by its name.
+ */
 public class ContextSelection {
 
     private SimpleApplicationContext applicationContext;

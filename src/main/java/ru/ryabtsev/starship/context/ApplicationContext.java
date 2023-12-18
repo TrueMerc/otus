@@ -1,16 +1,16 @@
 package ru.ryabtsev.starship.context;
 
 /**
- * Базовый интерфейс для IoC-контейнеров, используемых в приложении.
+ * Basic interface for IoC-containers that are used in this application.
  */
 public interface ApplicationContext {
 
     /**
-     * Возвращает объект по заданному ключу и параметрам.
-     * @param key ключ, которому соответствует объект.
-     * @param parameters параметры.
-     * @return объект, заданный ключом и соответствующими параметрами.
-     * @param <T> тип возвращаемого объекта.
+     * Return dependency for given key ond parameters.
+     * @param key key for dependency identification.
+     * @param parameters parameters.
+     * @return dependency for given key ond parameters.
+     * @param <T> type of returned value.
      */
     <T> T resolve(String key, Object[] parameters);
 }

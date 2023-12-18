@@ -9,6 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import ru.ryabtsev.starship.actions.context.DependencyRegistration;
 
+/**
+ * Simple implementation of ApplicationContext interface.
+ */
 public class SimpleApplicationContext implements ApplicationContext {
 
     private static final int DEPENDENCIES_INITIAL_CAPACITY = 128;

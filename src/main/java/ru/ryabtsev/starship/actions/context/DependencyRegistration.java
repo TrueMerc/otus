@@ -5,6 +5,9 @@ import ru.ryabtsev.starship.actions.Command;
 import ru.ryabtsev.starship.context.ApplicationContext;
 import ru.ryabtsev.starship.context.SimpleApplicationContext;
 
+/**
+ * The class that allows to register a new dependency in a context.
+ */
 public class DependencyRegistration implements Command {
 
     private final ApplicationContext applicationContext;
@@ -13,6 +16,12 @@ public class DependencyRegistration implements Command {
 
     private final Function<Object[], Object> dependency;
 
+    /**
+     * Creates new instance of the command that add a new command to a given context.
+     * @param applicationContext current context.
+     * @param key key that allows to get dependency from the current context.
+     * @param dependency dependency.
+     */
     public DependencyRegistration(
             final ApplicationContext applicationContext,
             final String key,
