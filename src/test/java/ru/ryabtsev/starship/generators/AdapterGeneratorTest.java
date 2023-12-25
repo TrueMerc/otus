@@ -63,10 +63,7 @@ class AdapterGeneratorTest {
     @Test
     @SneakyThrows
     void classLoadingTest() {
-        final ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        final Class<?> loadedClass = Class.forName(
-                "ru.ryabtsev.starship.actions.movement.MovableAdapter", true, classLoader);
-        assertNotNull(loadedClass);
+        final Class<?> loadedClass = adapterGenerator.generateFor(Movable.class);
         assertEquals(
                 Movable.class.getMethods().length + Object.class.getMethods().length,
                 loadedClass.getMethods().length

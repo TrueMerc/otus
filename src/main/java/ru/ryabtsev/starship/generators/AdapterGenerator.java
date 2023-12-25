@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +17,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.ryabtsev.starship.context.ApplicationContext;
@@ -32,17 +35,24 @@ public class AdapterGenerator {
             final String path = createPath(implementedInterface);
             final File file = new File(path);
             try (final OutputStream outputStream = new FileOutputStream(file)) {
-
+                outputStream.write(generateCodeFor(implementedInterface).getBytes(StandardCharsets.UTF_8));
             } catch (final IOException e) {
                 logger.error("Can't open output stream for file {}", file.getPath(), e);
             }
+            final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
+            javaCompiler.run(null, null, null, path);
+            final ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+            final String classFullName = implementedInterface.getPackageName()
+                    + "."
+                    + createAdapterName(implementedInterface);
+            try {
+                return Class.forName(classFullName, true, classLoader);
+            } catch (ClassNotFoundException e) {
+                logger.error("Can't find generated class " + classFullName);
+                throw new RuntimeException(e);
+            }
         }
         throw new IllegalArgumentException(implementedInterface.getName() + " is not an interface.");
-    }
-
-    public void createPackageFor(final Class<?> implementedInterface) {
-        final Package interfacePackage = implementedInterface.getPackage();
-        //final String interfacePackage.get
     }
 
     public String generateCodeFor(final Class<?> implementedInterface) {
