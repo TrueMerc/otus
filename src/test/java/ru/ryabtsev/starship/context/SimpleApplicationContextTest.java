@@ -2,13 +2,16 @@ package ru.ryabtsev.starship.context;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import ru.ryabtsev.starship.actions.Command;
 import ru.ryabtsev.starship.actions.context.ChildContextCreation;
 import ru.ryabtsev.starship.actions.movement.Movable;
+import ru.ryabtsev.starship.actions.movement.Vector;
 import ru.ryabtsev.starship.generators.AdapterGenerator;
 
 class SimpleApplicationContextTest {
@@ -110,6 +113,45 @@ class SimpleApplicationContextTest {
         assertTrue(Movable.class.isAssignableFrom(generatedClass));
     }
 
+    @Test
+    @SneakyThrows
+    void interfaceAdapterMethodsTest() {
+        final ApplicationContext context = new SimpleApplicationContext();
+        final Function<Object[], Object> adapterCreation = (parameters) ->
+                new AdapterGenerator().generateFor((Class<?>) parameters[0]);
+        context.<Command>resolve(REGISTRATION_COMMAND, new Object[]{ ADAPTER_COMMAND, adapterCreation }).execute();
+        final Class<?> generatedClass = context.resolve(ADAPTER_COMMAND, new Object[]{ Movable.class });
+        final Map<String, Object> adaptedObject = new HashMap<>();
+        final Vector position = new Vector(1, 2);
+        final Vector newPosition = new Vector(3, 3);
+        final Vector velocity = new Vector(2, 1);
+        adaptedObject.put("position", position);
+        adaptedObject.put("velocity", velocity);
+        final Object adapterObject = generatedClass.getDeclaredConstructor(ApplicationContext.class, Map.class)
+                .newInstance(context, adaptedObject);
+        assertTrue(adapterObject instanceof Movable);
+        final Movable movable = (Movable) adapterObject;
+
+        final Function<Object[], Object> positionRetrieving = (parameters) ->
+                ((Map<String, Object>) parameters[0]).get("position");
+        context.<Command>resolve(
+                REGISTRATION_COMMAND, new Object[]{ "Actions.Movable:getPosition", positionRetrieving }).execute();
+
+        final Function<Object[], Object> velocityRetrieving = (parameters) ->
+                ((Map<String, Object>) parameters[0]).get("velocity");
+        context.<Command>resolve(
+                REGISTRATION_COMMAND, new Object[]{ "Actions.Movable:getVelocity", velocityRetrieving }).execute();
+
+        final Function<Object[], Object> positionSetting = (parameters) ->
+                ((Map<String, Object>) parameters[0]).put("position", parameters[1]);
+        context.<Command>resolve(
+                REGISTRATION_COMMAND, new Object[]{ "Actions.Movable:moveTo", positionSetting }).execute();
+
+        assertEquals(position, movable.getPosition());
+        assertEquals(velocity, movable.getVelocity());
+        movable.moveTo(newPosition);
+        assertEquals(newPosition, movable.getPosition());
+    }
 
     private static class ContextDependentTest implements Runnable {
 
