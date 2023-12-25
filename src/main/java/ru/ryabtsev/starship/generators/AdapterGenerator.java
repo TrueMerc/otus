@@ -41,6 +41,7 @@ public class AdapterGenerator {
             }
             final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
             javaCompiler.run(null, null, null, path);
+            file.delete();
             final ClassLoader classLoader = ClassLoader.getSystemClassLoader();
             final String classFullName = implementedInterface.getPackageName()
                     + "."
