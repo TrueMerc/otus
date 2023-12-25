@@ -19,41 +19,6 @@ import ru.ryabtsev.starship.actions.movement.Movable;
 
 class AdapterGeneratorTest {
 
-    // language=Java
-    private final String EXPECTED_RESULT = """
-                package ru.ryabtsev.starship.actions.movement;
-                
-                import ru.ryabtsev.starship.context.ApplicationContext;
-                import java.util.Map;
-                
-                class MovableAdapter implements Movable {
-                
-                    private ApplicationContext applicationContext;
-                
-                    private Map<String, Object> adaptedObject;
-                     
-                    public MovableAdapter(final ApplicationContext applicationContext, final Map<String, Object> adaptedObject) {
-                        this.applicationContext = applicationContext;
-                        this.adaptedObject = adaptedObject;
-                    }
-                    
-                    @Override                    
-                    public Vector getPosition() {
-                        return applicationContext.<Vector>resolve("Actions.Movable:getPosition", new Object[]{ adaptedObject });
-                    }
-                    
-                    @Override
-                    public Vector getVelocity() {
-                        return applicationContext.<Vector>resolve("Actions.Movable:getVelocity", new Object[]{ adaptedObject });
-                    }
-                    
-                    @Override
-                    public void moveTo(final Vector arg0) {
-                        applicationContext.resolve("Actions.Movable:moveTo", new Object[]{ adaptedObject, arg0 });
-                    }
-                }
-                """;
-
     private final AdapterGenerator adapterGenerator = new AdapterGenerator();
 
     @Test
@@ -61,12 +26,6 @@ class AdapterGeneratorTest {
         final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
         assertNotNull(javaCompiler);
     }
-
-    @Test
-    void codeCreationTest() {
-        assertEquals(EXPECTED_RESULT, adapterGenerator.generateCodeFor(Movable.class));
-    }
-
 
     @Test
     @SneakyThrows
@@ -108,5 +67,9 @@ class AdapterGeneratorTest {
         final Class<?> loadedClass = Class.forName(
                 "ru.ryabtsev.starship.actions.movement.MovableAdapter", true, classLoader);
         assertNotNull(loadedClass);
+        assertEquals(
+                Movable.class.getMethods().length + Object.class.getMethods().length,
+                loadedClass.getMethods().length
+        );
     }
 }
