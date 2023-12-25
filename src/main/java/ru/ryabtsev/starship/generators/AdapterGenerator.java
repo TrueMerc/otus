@@ -98,7 +98,7 @@ public class AdapterGenerator {
     }
 
     private String createClassBeginningSection(final Class<?> implementedInterface) {
-        return "class "
+        return "public class "
                 + createAdapterName(implementedInterface)
                 + " implements "
                 + implementedInterface.getSimpleName()

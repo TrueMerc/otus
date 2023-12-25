@@ -9,6 +9,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
@@ -16,6 +18,8 @@ import javax.tools.ToolProvider;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import ru.ryabtsev.starship.actions.movement.Movable;
+import ru.ryabtsev.starship.context.ApplicationContext;
+import ru.ryabtsev.starship.context.SimpleApplicationContext;
 
 class AdapterGeneratorTest {
 
@@ -61,12 +65,23 @@ class AdapterGeneratorTest {
     }
 
     @Test
-    @SneakyThrows
     void classLoadingTest() {
         final Class<?> loadedClass = adapterGenerator.generateFor(Movable.class);
         assertEquals(
                 Movable.class.getMethods().length + Object.class.getMethods().length,
                 loadedClass.getMethods().length
         );
+    }
+
+    @SneakyThrows
+    @Test
+    void instanceCreationTest() {
+        final Class<?> loadedClass = adapterGenerator.generateFor(Movable.class);
+        final ApplicationContext applicationContext = new SimpleApplicationContext();
+        final Map<String, Object> adaptedObject = new HashMap<>();
+
+        final Object instance = loadedClass.getDeclaredConstructor(ApplicationContext.class, Map.class)
+                .newInstance(applicationContext, adaptedObject);
+        assertTrue(instance instanceof Movable);
     }
 }

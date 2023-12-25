@@ -8,10 +8,14 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import ru.ryabtsev.starship.actions.Command;
 import ru.ryabtsev.starship.actions.context.ChildContextCreation;
+import ru.ryabtsev.starship.actions.movement.Movable;
+import ru.ryabtsev.starship.generators.AdapterGenerator;
 
 class SimpleApplicationContextTest {
 
     private static final String REGISTRATION_COMMAND = "DependencyRegistration";
+
+    private static final String ADAPTER_COMMAND = "Adapter";
 
     private static final String ONE = "one";
 
@@ -93,6 +97,17 @@ class SimpleApplicationContextTest {
 
         assertEquals(1L, firstContext.<Long>resolve(ONE, null).longValue());
         assertEquals(1L, secondContext.<Long>resolve(ONE, null).longValue());
+    }
+
+    @Test
+    void interfaceAdapterTest() {
+        final ApplicationContext context = new SimpleApplicationContext();
+        final Function<Object[], Object> adapterCreation = (parameters) ->
+                new AdapterGenerator().generateFor((Class<?>) parameters[0]);
+        context.<Command>resolve(REGISTRATION_COMMAND, new Object[]{ ADAPTER_COMMAND, adapterCreation }).execute();
+        final Class<?> generatedClass = context.resolve(ADAPTER_COMMAND, new Object[]{ Movable.class });
+        assertNotNull(generatedClass);
+        assertTrue(Movable.class.isAssignableFrom(generatedClass));
     }
 
 
