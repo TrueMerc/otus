@@ -88,7 +88,11 @@ public class AdapterGenerator {
     }
 
     private String createClassBeginningSection(final Class<?> implementedInterface) {
-        return "class " + createAdapterName(implementedInterface) + " {\n\n";
+        return "class "
+                + createAdapterName(implementedInterface)
+                + " implements "
+                + implementedInterface.getSimpleName()
+                +" {\n\n";
     }
 
     private String createAdapterName(final Class<?> implementedInterface) {
@@ -148,6 +152,9 @@ public class AdapterGenerator {
                 .append(createParametersSection(method))
                 .append(") {\n")
                 .append(IDENTATION)
+                .append(IDENTATION)
+                .append(createInternalImplementation(method))
+                .append(IDENTATION)
                 .append("}\n")
                 .toString();
     }
@@ -167,6 +174,25 @@ public class AdapterGenerator {
                 .append(" ")
                 .append(parameter.getName())
                 .toString();
+    }
+
+    private String createInternalImplementation(final Method method) {
+        final String methodTemplate = "applicationContext.%sresolve(\"%s\", new Object[]{ adaptedObject%s });\n";
+        final String returnedType = method.getReturnType().isPrimitive()
+                ? ""
+                : "<" + method.getReturnType().getSimpleName() + ">";
+        final String nameInContextTemplate = "Actions.%s:%s";
+        final String nameInContext = String.format(
+                nameInContextTemplate, method.getDeclaringClass().getSimpleName(), method.getName());
+        final String parameters = (method.getParameters().length > 0 ? ", " : "")
+                + Arrays.stream(method.getParameters())
+                .map(Parameter::getName)
+                .collect(Collectors.joining(", "));
+        final String returnTypeName = method.getReturnType().getSimpleName();
+        final String returnStatement = "void".equals(returnTypeName) || "Void".equals(returnTypeName)
+                ? ""
+                : "return ";
+        return returnStatement + String.format(methodTemplate, returnedType, nameInContext, parameters);
     }
 
     public void clearAll() {

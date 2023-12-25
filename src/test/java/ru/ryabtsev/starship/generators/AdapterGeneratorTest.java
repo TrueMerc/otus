@@ -5,46 +5,28 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import ru.ryabtsev.starship.actions.movement.Movable;
-import ru.ryabtsev.starship.context.ApplicationContext;
 
 class AdapterGeneratorTest {
 
-    private final AdapterGenerator adapterGenerator = new AdapterGenerator();
-
-
-    @Test
-    void javaCompilerTest() {
-        final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
-        assertNotNull(javaCompiler);
-    }
-
-    @Test
-    void codeCreationTest() {
-        // language=Java
-        final String expected = """
+    // language=Java
+    private final String EXPECTED_RESULT = """
                 package ru.ryabtsev.starship.actions.movement;
                 
                 import ru.ryabtsev.starship.context.ApplicationContext;
                 import java.util.Map;
                 
-                class MovableAdapter {
+                class MovableAdapter implements Movable {
                 
                     private ApplicationContext applicationContext;
                 
@@ -57,19 +39,32 @@ class AdapterGeneratorTest {
                     
                     @Override                    
                     public Vector getPosition() {
+                        return applicationContext.<Vector>resolve("Actions.Movable:getPosition", new Object[]{ adaptedObject });
                     }
                     
                     @Override
                     public Vector getVelocity() {
+                        return applicationContext.<Vector>resolve("Actions.Movable:getVelocity", new Object[]{ adaptedObject });
                     }
                     
                     @Override
                     public void moveTo(final Vector arg0) {
+                        applicationContext.resolve("Actions.Movable:moveTo", new Object[]{ adaptedObject, arg0 });
                     }
                 }
                 """;
 
-        assertEquals(expected, adapterGenerator.generateCodeFor(Movable.class));
+    private final AdapterGenerator adapterGenerator = new AdapterGenerator();
+
+    @Test
+    void javaCompilerTest() {
+        final JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
+        assertNotNull(javaCompiler);
+    }
+
+    @Test
+    void codeCreationTest() {
+        assertEquals(EXPECTED_RESULT, adapterGenerator.generateCodeFor(Movable.class));
     }
 
 

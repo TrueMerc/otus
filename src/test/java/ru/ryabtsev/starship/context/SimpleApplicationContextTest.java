@@ -102,7 +102,6 @@ class SimpleApplicationContextTest {
 
         private final String contextName;
 
-
         public ContextDependentTest(ApplicationContext rootContext, String contextName) {
             this.rootContext = rootContext;
             this.contextName = contextName;
