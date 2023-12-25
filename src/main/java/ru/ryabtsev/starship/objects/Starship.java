@@ -1,6 +1,7 @@
 package ru.ryabtsev.starship.objects;
 
 import java.util.Objects;
+import jdk.jshell.spi.ExecutionControl;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -49,6 +50,11 @@ public class Starship implements Movable, Rotatable, FuelConsumer, ObjectWithCha
         } catch (final NullPointerException e) {
             throw new IllegalStateException("Can't move object to undefined position", e);
         }
+    }
+
+    @Override
+    public void finish() {
+        throw new UnsupportedOperationException("This operation was added only for testing purpose");
     }
 
     @Override

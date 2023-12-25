@@ -51,5 +51,10 @@ class CommandExceptionHandlerTest {
         public void moveTo(Vector position) {
 
         }
+
+        @Override
+        public void finish() {
+
+        }
     }
 }

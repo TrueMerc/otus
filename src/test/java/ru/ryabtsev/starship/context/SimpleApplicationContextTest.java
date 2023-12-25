@@ -147,10 +147,17 @@ class SimpleApplicationContextTest {
         context.<Command>resolve(
                 REGISTRATION_COMMAND, new Object[]{ "Actions.Movable:moveTo", positionSetting }).execute();
 
+        final Function<Object[], Object> movementFinishing = (parameters) -> {
+            throw new UnsupportedOperationException("This operation was added only for testing purpose");
+        };
+        context.<Command>resolve(
+                REGISTRATION_COMMAND, new Object[]{ "Actions.Movable:finish", movementFinishing }).execute();
+
         assertEquals(position, movable.getPosition());
         assertEquals(velocity, movable.getVelocity());
         movable.moveTo(newPosition);
         assertEquals(newPosition, movable.getPosition());
+        assertThrows(UnsupportedOperationException.class, () -> movable.finish());
     }
 
     private static class ContextDependentTest implements Runnable {
