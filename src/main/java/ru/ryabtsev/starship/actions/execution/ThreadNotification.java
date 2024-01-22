@@ -6,8 +6,10 @@ public record ThreadNotification(Object monitor) implements Command {
 
     @Override
     public void execute() {
-        synchronized (monitor) {
-            monitor.notifyAll();
-        }
+        new Thread(() -> {
+            synchronized (monitor) {
+                monitor.notifyAll();
+            }
+        }).start();
     }
 }

@@ -69,7 +69,9 @@ class SingleThreadExecutorTest {
         final List<Integer> numbers = new ArrayList<>(10);
         IntStream.range(0, 10).forEach(number -> {
             if (number != 0 && number % 5 == 0) {
-                commandQueue.add(new ExecutionStop(singleThreadExecutor, this));
+                commandQueue.add(new CompositeCommand(
+                        new ThreadNotification(this),
+                        new ExecutionStop(singleThreadExecutor)));
             } else {
                 commandQueue.add(new NumberAddition(numbers, number));
             }
