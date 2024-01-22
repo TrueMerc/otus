@@ -21,12 +21,12 @@ public class SingleThreadExecutor {
      * @param commandQueue queue which contains commands that should be executed.
      */
     public SingleThreadExecutor(final CommandQueue commandQueue) {
+        this.commandQueue = commandQueue;
         this.thread = new Thread(() -> {
            while (isActive) {
-               commandQueue.execute();
+               this.commandQueue.execute();
            }
         });
-        this.commandQueue = commandQueue;
         this.isActive = false;
     }
 
@@ -46,9 +46,15 @@ public class SingleThreadExecutor {
         isActive = false;
         try {
             thread.join();
-            logger.info("Thread {} has been successfully stopped", thread.getName());
-        } catch (InterruptedException e) {
+            logger.info("Thread {} has been successfully stopped.", thread.getName());
+        } catch (final InterruptedException e) {
+            logger.error("Can't stop thread in a proper way", e);
             throw new IllegalStateException(e);
         }
+
+    }
+
+    public boolean isActive() {
+        return isActive && thread.isAlive();
     }
 }
