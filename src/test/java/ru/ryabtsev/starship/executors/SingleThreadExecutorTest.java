@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import ru.ryabtsev.starship.actions.Command;
+import ru.ryabtsev.starship.actions.CompositeCommand;
 import ru.ryabtsev.starship.actions.execution.ExecutionSoftStop;
 import ru.ryabtsev.starship.actions.execution.ExecutionStop;
 import ru.ryabtsev.starship.actions.execution.ExecutionStart;
+import ru.ryabtsev.starship.actions.execution.ThreadNotification;
 import ru.ryabtsev.starship.exceptions.handlers.CommandExceptionHandler;
 
 class SingleThreadExecutorTest {
@@ -73,6 +75,8 @@ class SingleThreadExecutorTest {
                 freeze();
             }
         });
+
+        // Assert
         assertFalse(singleThreadExecutor.isActive());
         assertEquals(5, numbers.size());
         assertTrue(IntStream.range(0, 5).boxed().allMatch(numbers::contains));
@@ -81,6 +85,7 @@ class SingleThreadExecutorTest {
     @Test
     void softStopCommandBasedTest() {
 
+        // Arrange
         final List<Integer> numbers = new ArrayList<>(10);
         IntStream.range(0, 10).forEach(number -> {
             if (number != 0 && number % 5 == 0) {
@@ -89,12 +94,19 @@ class SingleThreadExecutorTest {
                 commandQueue.add(new NumberAddition(numbers, number));
             }
         });
-        new ExecutionStart(singleThreadExecutor).execute();
-        try {
-            Thread.sleep(1000);
-        } catch (final InterruptedException e) {
+        commandQueue.add(new ThreadNotification(this));
 
+        // Act
+        synchronized (this) {
+            try {
+                new ExecutionStart(singleThreadExecutor).execute();
+                wait();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
+
+        // Assert
         assertEquals(9, numbers.size());
         assertTrue(IntStream.range(0, 10).filter(number -> number != 5).boxed().allMatch(numbers::contains));
         assertFalse(singleThreadExecutor.isActive());

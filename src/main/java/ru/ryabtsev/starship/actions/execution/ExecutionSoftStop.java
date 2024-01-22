@@ -14,12 +14,7 @@ public record ExecutionSoftStop(SingleThreadExecutor singleThreadExecutor, Comma
             while(!commandQueue.isEmpty()) {
                 commandQueue.execute();
             }
-            new Thread(singleThreadExecutor::stop).start();
-            try {
-                Thread.sleep(10);
-            } catch (final InterruptedException e) {
-                throw  new IllegalStateException(e);
-            }
+            singleThreadExecutor.stop();
             return null;
         };
         singleThreadExecutor.changeExecutionStrategy(newExecutionStrategy);
