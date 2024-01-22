@@ -79,6 +79,7 @@ class SingleThreadExecutorTest {
         synchronized (this) {
             try {
                 new ExecutionStart(singleThreadExecutor).execute();
+                assertTrue(singleThreadExecutor.isActive());
                 wait();
             } catch (final InterruptedException e) {
                 throw new IllegalStateException(e);
@@ -109,6 +110,7 @@ class SingleThreadExecutorTest {
         synchronized (this) {
             try {
                 new ExecutionStart(singleThreadExecutor).execute();
+                assertTrue(singleThreadExecutor.isActive());
                 wait();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
