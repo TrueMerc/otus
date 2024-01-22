@@ -65,16 +65,25 @@ class SingleThreadExecutorTest {
 
     @Test
     void stopCommandBasedTest() {
-        new ExecutionStart(singleThreadExecutor).execute();
+        // Arrange
         final List<Integer> numbers = new ArrayList<>(10);
         IntStream.range(0, 10).forEach(number -> {
             if (number != 0 && number % 5 == 0) {
-                commandQueue.add(new ExecutionStop(singleThreadExecutor));
+                commandQueue.add(new ExecutionStop(singleThreadExecutor, this));
             } else {
                 commandQueue.add(new NumberAddition(numbers, number));
-                freeze();
             }
         });
+
+        // Act
+        synchronized (this) {
+            try {
+                new ExecutionStart(singleThreadExecutor).execute();
+                wait();
+            } catch (final InterruptedException e) {
+                throw new IllegalStateException(e);
+            }
+        }
 
         // Assert
         assertFalse(singleThreadExecutor.isActive());
