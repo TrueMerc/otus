@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import ru.ryabtsev.starship.actions.Command;
+import ru.ryabtsev.starship.actions.execution.ExecutionSoftStop;
 import ru.ryabtsev.starship.actions.execution.ExecutionStop;
 import ru.ryabtsev.starship.actions.execution.ExecutionStart;
 import ru.ryabtsev.starship.exceptions.handlers.CommandExceptionHandler;
@@ -61,7 +62,7 @@ class SingleThreadExecutorTest {
     }
 
     @Test
-    void softResetCommandBasedTest() {
+    void stopCommandBasedTest() {
         new ExecutionStart(singleThreadExecutor).execute();
         final List<Integer> numbers = new ArrayList<>(10);
         IntStream.range(0, 10).forEach(number -> {
@@ -75,11 +76,28 @@ class SingleThreadExecutorTest {
         assertFalse(singleThreadExecutor.isActive());
         assertEquals(5, numbers.size());
         assertTrue(IntStream.range(0, 5).boxed().allMatch(numbers::contains));
+    }
+
+    @Test
+    void softStopCommandBasedTest() {
+
+        final List<Integer> numbers = new ArrayList<>(10);
+        IntStream.range(0, 10).forEach(number -> {
+            if (number != 0 && number % 5 == 0) {
+                commandQueue.add(new ExecutionSoftStop(singleThreadExecutor, commandQueue));
+            } else {
+                commandQueue.add(new NumberAddition(numbers, number));
+            }
+        });
+        new ExecutionStart(singleThreadExecutor).execute();
         try {
             Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
+        } catch (final InterruptedException e) {
+
         }
+        assertEquals(9, numbers.size());
+        assertTrue(IntStream.range(0, 10).filter(number -> number != 5).boxed().allMatch(numbers::contains));
+        assertFalse(singleThreadExecutor.isActive());
     }
 
     private record NumberAddition(List<Integer> numbers, int number) implements Command {
@@ -88,6 +106,5 @@ class SingleThreadExecutorTest {
         public void execute() {
             numbers.add(number);
         }
-
     }
 }

@@ -51,4 +51,9 @@ public class ConcurrentCommandQueue implements CommandQueue {
             }
         }
     }
+
+    @Override
+    public boolean isEmpty() {
+        return commands.isEmpty();
+    }
 }

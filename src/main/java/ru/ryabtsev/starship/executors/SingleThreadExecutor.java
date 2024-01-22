@@ -1,5 +1,6 @@
 package ru.ryabtsev.starship.executors;
 
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,11 +11,18 @@ public class SingleThreadExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(SingleThreadExecutor.class);
 
-    private final Thread thread;
+    private Thread thread;
 
     private CommandQueue commandQueue;
 
     private boolean isActive;
+
+    private Supplier<Void> executionStrategy = () -> {
+        while (isActive) {
+            commandQueue.execute();
+        }
+        return null;
+    };
 
     /**
      * Constructs a new single thread executor.
@@ -22,12 +30,8 @@ public class SingleThreadExecutor {
      */
     public SingleThreadExecutor(final CommandQueue commandQueue) {
         this.commandQueue = commandQueue;
-        this.thread = new Thread(() -> {
-           while (isActive) {
-               this.commandQueue.execute();
-           }
-        });
-        this.isActive = false;
+        thread = new Thread(() -> executionStrategy.get());
+        isActive = false;
     }
 
     /**
@@ -51,10 +55,25 @@ public class SingleThreadExecutor {
             logger.error("Can't stop thread in a proper way", e);
             throw new IllegalStateException(e);
         }
-
     }
 
+    /**
+     * Returns the attribute that determines is this executor active or not.
+     * @return the attribute that determines is this executor active or not.
+     */
     public boolean isActive() {
         return isActive && thread.isAlive();
+    }
+
+    /**
+     * Changes execution strategy that is used by the executor.
+     */
+    public void changeExecutionStrategy(final Supplier<Void> executionStrategy) {
+        this.executionStrategy = executionStrategy;
+        if (Thread.currentThread().equals(thread)) {
+            thread.interrupt();
+            this.thread = new Thread(() -> this.executionStrategy.get());
+            this.thread.start();
+        }
     }
 }
