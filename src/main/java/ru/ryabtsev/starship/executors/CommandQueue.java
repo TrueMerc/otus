@@ -12,4 +12,6 @@ public interface CommandQueue {
     Command peek();
 
     void execute();
+
+    boolean isEmpty();
 }
