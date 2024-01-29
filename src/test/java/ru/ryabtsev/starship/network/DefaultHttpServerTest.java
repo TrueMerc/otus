@@ -11,12 +11,23 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.ryabtsev.starship.actions.Command;
+import ru.ryabtsev.starship.actions.movement.Movement;
+import ru.ryabtsev.starship.actions.movement.Vector;
+import ru.ryabtsev.starship.context.ApplicationContext;
+import ru.ryabtsev.starship.context.SimpleApplicationContext;
+import ru.ryabtsev.starship.exceptions.handlers.CommandExceptionHandler;
+import ru.ryabtsev.starship.executors.CommandQueue;
+import ru.ryabtsev.starship.executors.ConcurrentCommandQueue;
+import ru.ryabtsev.starship.network.messages.handlers.ActionMessageHandler;
+import ru.ryabtsev.starship.objects.Starship;
 
 class DefaultHttpServerTest {
 
@@ -24,20 +35,27 @@ class DefaultHttpServerTest {
 
     private static final int PORT = 9080;
 
+    private static final String STARSHIP_ID = "9c5b94b1-35ad-49bb-b118-8e8fc24abf81";
+
     private static final String COMMAND_ENDPOINT = "/api/command";
 
+    private static final double DELTA = 1.0e-12;
+
+    private static final URI REQUEST_URI;
+
+
+    static {
+        try {
+            REQUEST_URI = new URI("http://" + URL + ":" + PORT + COMMAND_ENDPOINT);
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
     private final ApplicationHttpServer server = new DefaultHttpServer(
             new InetSocketAddress(URL, PORT), 100);
 
-    @BeforeEach
-    void setUp() {
-        //server.registerHandler(COMMAND_ENDPOINT, new RequestCounter());
-//        server.start();
-    }
-
     @AfterEach
     void tearDown() {
-        server.unregisterHandler(COMMAND_ENDPOINT);
         server.stop();
     }
 
@@ -48,19 +66,61 @@ class DefaultHttpServerTest {
         server.registerHandler(COMMAND_ENDPOINT, requestCounter);
         server.start();
         final HttpClient client = HttpClient.newHttpClient();
-         final int numberOfRequests = 10;
+        final int numberOfRequests = 10;
         IntStream.range(0, numberOfRequests).forEach((number) -> {
             try {
                 final HttpRequest request = HttpRequest.newBuilder()
-                        .uri(new URI("http://" + URL + ":" + PORT + COMMAND_ENDPOINT))
+                        .uri(REQUEST_URI)
                         .POST(HttpRequest.BodyPublishers.noBody())
                         .build();
                 client.send(request, HttpResponse.BodyHandlers.ofString());
-            } catch (IOException | InterruptedException | URISyntaxException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new IllegalStateException(e);
             }
         });
         assertEquals(numberOfRequests, requestCounter.getNumberOfRequests());
+    }
+
+    @Test
+    @SneakyThrows
+    void actionMessageHandlerTest() {
+        // Arrange:
+        final var registration = "DependencyRegistration";
+        final ApplicationContext context = new SimpleApplicationContext();
+        final CommandQueue commandQueue = new ConcurrentCommandQueue(new CommandExceptionHandler());
+        final Function<Object[], Object> commandQueueProvider = (objects) -> commandQueue;
+        context.<Command>resolve(registration, new Object[] { "MessageQueue", commandQueueProvider}).execute();
+        ;
+
+        final Starship starship = new Starship(new Vector(0., 0.), new Vector(1., 1.));
+        final Function<Object[], Object> starshipProvider = (objects) -> starship;
+        context.<Command>resolve(registration, new Object[] { STARSHIP_ID, starshipProvider}).execute();
+
+        final Map<String, String> apiMap = Map.of("movement", Movement.class.getName());
+        final Function<Object[], Object> apiMapProvider = objects -> apiMap;
+        context.<Command>resolve("DependencyRegistration", new Object[] { "ApiMap", apiMapProvider }).execute();
+
+        final ActionMessageHandler actionMessageHandler = new ActionMessageHandler(commandQueue, context);
+        server.registerHandler(COMMAND_ENDPOINT, actionMessageHandler);
+        server.start();
+        final HttpClient client = HttpClient.newHttpClient();
+        final HttpRequest request = HttpRequest.newBuilder()
+                .uri(REQUEST_URI)
+                .POST(HttpRequest.BodyPublishers.ofFile(Path.of("./src/test/resources/MovementMessage.json")))
+                .build();
+
+        // Act:
+        final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        // Assert:
+        assertEquals(200, response.statusCode());
+        assertEquals("OK", response.body());
+        assertFalse(commandQueue.isEmpty());
+        commandQueue.execute();
+        assertFalse(commandQueue.isEmpty());
+        commandQueue.execute();
+        assertEquals(1., starship.getPosition().x(), DELTA);
+        assertEquals(1., starship.getPosition().y(), DELTA);
     }
 
 
@@ -81,7 +141,7 @@ class DefaultHttpServerTest {
             }
         }
 
-        public int getNumberOfRequests() {
+        int getNumberOfRequests() {
             return numberOfRequests;
         }
     }
