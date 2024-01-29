@@ -126,7 +126,7 @@ class DefaultHttpServerTest {
 
     private static class RequestCounter implements HttpHandler {
 
-        private int numberOfRequests = 0;
+        private int numberOfRequests;
 
         @Override
         public void handle(final HttpExchange exchange) {

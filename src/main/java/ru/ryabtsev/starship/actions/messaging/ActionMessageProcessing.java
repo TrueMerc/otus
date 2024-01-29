@@ -44,19 +44,7 @@ public class ActionMessageProcessing implements Command {
                     .map(Object::getClass)
                     .toArray(Class<?>[]::new);
             final Constructor<?> actionConstructor = Arrays.stream(actionClass.getConstructors())
-                    .filter(constructor -> {
-                        final Class<?>[] parameterTypes = constructor.getParameterTypes();
-                        if (parameterTypes.length != argumentTypes.length) {
-                            return false;
-                        } else {
-                            for (int number = 0; number < parameterTypes.length; ++number) {
-                                if (!parameterTypes[number].isAssignableFrom(argumentTypes[number])) {
-                                    return false;
-                                }
-                            }
-                        }
-                        return true;
-                    })
+                    .filter(constructor -> constructorMatchesArgumentTypes(constructor, argumentTypes))
                     .findFirst()
                     .orElseThrow(NoSuchMethodException::new);
             final Object commandObject = actionConstructor.newInstance(constructorArguments);
@@ -64,16 +52,28 @@ public class ActionMessageProcessing implements Command {
                 throw new IllegalStateException("Object that has been created isn't the Command object");
             }
             commandQueue.add((Command) commandObject);
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException
+                       | InvocationTargetException
+                       | InstantiationException
+                       | IllegalAccessException e) {
             throw new IllegalArgumentException(e);
-        } catch (NoSuchMethodException e) {
+        } catch (final NoSuchMethodException e) {
             throw new IllegalStateException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
         }
+    }
+
+    boolean constructorMatchesArgumentTypes(Constructor<?> constructor, Class<?>[] argumentTypes) {
+        final Class<?>[] parameterTypes = constructor.getParameterTypes();
+        final int length = parameterTypes.length;
+        if (length == argumentTypes.length) {
+            for (int number = 0; number < length; ++number) {
+                if (!parameterTypes[number].isAssignableFrom(argumentTypes[number])) {
+                    return false;
+                }
+            }
+        } else {
+            return false;
+        }
+        return true;
     }
 }
