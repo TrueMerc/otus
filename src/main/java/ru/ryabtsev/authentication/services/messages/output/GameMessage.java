@@ -1,4 +1,4 @@
-package ru.ryabtsev.authentication.services.messages;
+package ru.ryabtsev.authentication.services.messages.output;
 
 import java.util.UUID;
 
