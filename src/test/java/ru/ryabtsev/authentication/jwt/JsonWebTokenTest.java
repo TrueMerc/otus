@@ -43,9 +43,7 @@ class JsonWebTokenTest {
         assertNotNull(token);
         final String[] tokenParts = token.split("\\.");
         assertEquals(3, tokenParts.length);
-        final String decodedHeader = new String(Base64.getDecoder().decode(tokenParts[0]), StandardCharsets.UTF_8);
         assertEquals(header, tokenParts[0]);
-        final String decodedPayload = new String(Base64.getDecoder().decode(tokenParts[1]), StandardCharsets.UTF_8);
         assertEquals(payload, tokenParts[1]);
         assertEquals(signature, tokenParts[2]);
     }
