@@ -1,10 +1,9 @@
-package ru.ryabtsev.authentication.jwt;
+package ru.ryabtsev.security.jwt;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import org.junit.jupiter.api.Test;
+import ru.ryabtsev.security.jwt.JsonWebToken;
 
 class JsonWebTokenTest {
 

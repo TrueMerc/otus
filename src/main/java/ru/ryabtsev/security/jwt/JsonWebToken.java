@@ -1,4 +1,4 @@
-package ru.ryabtsev.authentication.jwt;
+package ru.ryabtsev.security.jwt;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -89,7 +89,7 @@ public class JsonWebToken {
      * @param secretKey secret key.
      * @return true if the token signature was created by using the same key or false in the other case.
      */
-    boolean isValidFor(final String secretKey) {
+   public boolean isValidFor(final String secretKey) {
         final String newSignature = hmacSha256(
                 HMAC_SHA_ALGORITHM, String.join(SEPARATOR, encodedHeader, encodedPayload) , secretKey);
         return signature.equals(newSignature);

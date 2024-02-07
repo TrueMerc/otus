@@ -3,7 +3,7 @@ package ru.ryabtsev.authentication.services;
 import java.util.UUID;
 import ru.ryabtsev.authentication.entities.Game;
 import ru.ryabtsev.authentication.entities.User;
-import ru.ryabtsev.authentication.jwt.JsonWebToken;
+import ru.ryabtsev.security.jwt.JsonWebToken;
 
 public class DefaultJwtTokenService implements JwtTokenService {
 
