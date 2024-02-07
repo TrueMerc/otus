@@ -1,14 +1,6 @@
 package ru.ryabtsev.authentication.services;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Formatter;
-import java.util.Map;
 import java.util.UUID;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import lombok.SneakyThrows;
 import ru.ryabtsev.authentication.entities.Game;
 import ru.ryabtsev.authentication.entities.User;
 import ru.ryabtsev.authentication.jwt.JsonWebToken;
@@ -54,6 +46,10 @@ public class DefaultJwtTokenService implements JwtTokenService {
     }
 
     private String formPayload(final String userName, final UUID gameId) {
-        return String.format(PAYLOAD_TEMPLATE, userService.getIdByUserName(userName), gameId.toString());
+        final String userId = userService.getByUserName(userName)
+                .map(User::id)
+                .map(UUID::toString)
+                .orElseThrow(() -> new IllegalArgumentException("User with name " + userName + "doesn't exist"));
+        return String.format(PAYLOAD_TEMPLATE, userId, gameId.toString());
     }
 }

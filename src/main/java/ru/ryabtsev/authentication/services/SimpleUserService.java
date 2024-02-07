@@ -2,6 +2,7 @@ package ru.ryabtsev.authentication.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import ru.ryabtsev.authentication.entities.User;
 
 public class SimpleUserService implements UserService {
@@ -15,13 +16,16 @@ public class SimpleUserService implements UserService {
     }
 
     @Override
-    public boolean validatesCredentials(String userName, String password) {
-        return false;
+    public boolean validatesCredentials(final String userName, final String password) {
+        return getByUserName(userName)
+                .map(User::password)
+                .map(userPassword -> userPassword.equals(password))
+                .orElse(false);
     }
 
     @Override
-    public Long getIdByUserName(String userName) {
-        return null;
+    public Optional<User> getByUserName(final String userName) {
+        return users.stream().filter(user -> user.login().equals(userName)).findFirst();
     }
 
     @Override
