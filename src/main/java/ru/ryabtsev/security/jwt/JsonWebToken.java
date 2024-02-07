@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import lombok.Getter;
 import lombok.SneakyThrows;
 
 public class JsonWebToken {
@@ -19,6 +20,7 @@ public class JsonWebToken {
 
     private final String encodedHeader;
 
+    @Getter
     private final String encodedPayload;
 
     private final String signature;

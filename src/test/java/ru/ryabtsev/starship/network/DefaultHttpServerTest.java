@@ -2,8 +2,10 @@ package ru.ryabtsev.starship.network;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -18,6 +20,7 @@ import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import ru.ryabtsev.security.jwt.JsonWebToken;
 import ru.ryabtsev.starship.actions.Command;
 import ru.ryabtsev.starship.actions.movement.Movement;
 import ru.ryabtsev.starship.actions.movement.Vector;
@@ -26,6 +29,7 @@ import ru.ryabtsev.starship.context.SimpleApplicationContext;
 import ru.ryabtsev.starship.exceptions.handlers.CommandExceptionHandler;
 import ru.ryabtsev.starship.executors.CommandQueue;
 import ru.ryabtsev.starship.executors.ConcurrentCommandQueue;
+import ru.ryabtsev.starship.network.messages.ActionMessage;
 import ru.ryabtsev.starship.network.messages.handlers.ActionMessageHandler;
 import ru.ryabtsev.starship.objects.Starship;
 
@@ -39,10 +43,32 @@ class DefaultHttpServerTest {
 
     private static final String COMMAND_ENDPOINT = "/api/command";
 
+    private static final String COMMAND_FILE_PATH = "./src/test/resources/MovementMessage.json";
+
     private static final double DELTA = 1.0e-12;
 
-    private static final URI REQUEST_URI;
+    private static final String SECRET_KEY = "29d17f180f9dfc62bc7fd7fed48a61b5c5931de47a7f0def962c5ce91063a83c";
 
+    // language=JSON
+    private static final String HEADER = """
+            {
+                "typ": "JWT",
+                "alg": "HS256"
+            }
+            """;
+
+    // language=JSON
+    private static final String PAYLOAD_TEMPLATE = """
+            {
+                "iss": "Authentication Service",
+                "sub": "authentication",
+                "aud": "users",
+                "userId": "%s",
+                "gameId": "%s"
+            }
+            """;
+
+    private static final URI REQUEST_URI;
 
     static {
         try {
@@ -103,10 +129,16 @@ class DefaultHttpServerTest {
         final ActionMessageHandler actionMessageHandler = new ActionMessageHandler(commandQueue, context);
         server.registerHandler(COMMAND_ENDPOINT, actionMessageHandler);
         server.start();
+
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final ActionMessage actionMessage = objectMapper.readValue(new File(COMMAND_FILE_PATH), ActionMessage.class);
+        final String payload = String.format(PAYLOAD_TEMPLATE, "1", actionMessage.getGameId());
+        final JsonWebToken token = new JsonWebToken(HEADER, payload, SECRET_KEY);
         final HttpClient client = HttpClient.newHttpClient();
         final HttpRequest request = HttpRequest.newBuilder()
                 .uri(REQUEST_URI)
-                .POST(HttpRequest.BodyPublishers.ofFile(Path.of("./src/test/resources/MovementMessage.json")))
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.ofFile(Path.of(COMMAND_FILE_PATH)))
                 .build();
 
         // Act:
