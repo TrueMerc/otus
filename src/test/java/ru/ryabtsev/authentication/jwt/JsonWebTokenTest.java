@@ -49,4 +49,25 @@ class JsonWebTokenTest {
         assertEquals(payload, tokenParts[1]);
         assertEquals(signature, tokenParts[2]);
     }
+
+    @Test
+    void tokenVerificationTest() {
+        // Arrange:
+        final String header = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9";
+
+        final String payload = """
+                eyJpc3MiOiJBdXRoZW50aWNhdGlvbiBTZXJ2aWNlIiwic3ViIjoi\
+                YXV0aGVudGljYXRpb24iLCJhdWQiOiJ1c2VycyIsInVzZXJJZCI6IjEifQ""";
+
+        final String signature = "nIiGhZyYwpI6njZnWppHUjcKJ8BvNlslZOAX13OkWRo";
+
+        final String wrongKey = "29d17f180f9dfc62bc7fd7fed48a61b5c5931de47a7f0def962c5ce91063a83b";
+
+        // Act:
+        final JsonWebToken token = new JsonWebToken(String.join(".", header, payload, signature));
+
+        // Assert:
+        assertTrue(token.isValidFor(SECRET_KEY));
+        assertFalse(token.isValidFor(wrongKey));
+    }
 }

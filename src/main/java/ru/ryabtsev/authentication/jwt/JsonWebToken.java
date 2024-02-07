@@ -11,6 +11,8 @@ public class JsonWebToken {
 
     private static final String SEPARATOR = ".";
 
+    private static final String SEPARATOR_REGEX = "\\.";
+
     private static final String HMAC_SHA_ALGORITHM = "HmacSHA256";
 
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
@@ -28,6 +30,14 @@ public class JsonWebToken {
         encodedPayload = encodeToBase64(removeExcessSpaceCharacters(payload));
         signature = hmacSha256(HMAC_SHA_ALGORITHM, String.join(SEPARATOR, encodedHeader, encodedPayload) , secretKey);
         stringForm = String.join(SEPARATOR, encodedHeader, encodedPayload, signature);
+    }
+
+    public JsonWebToken(final String tokenString) {
+        final String[] tokenParts = tokenString.split(SEPARATOR_REGEX);
+        encodedHeader = tokenParts[0];
+        encodedPayload = tokenParts[1];
+        signature = tokenParts[2];
+        stringForm = tokenString;
     }
 
     private static String encodeToBase64(final String string) {
@@ -72,5 +82,16 @@ public class JsonWebToken {
     @Override
     public String toString() {
         return stringForm;
+    }
+
+    /**
+     * Returns true if the token signature was created by using the same key or false in the other case.
+     * @param secretKey secret key.
+     * @return true if the token signature was created by using the same key or false in the other case.
+     */
+    boolean isValidFor(final String secretKey) {
+        final String newSignature = hmacSha256(
+                HMAC_SHA_ALGORITHM, String.join(SEPARATOR, encodedHeader, encodedPayload) , secretKey);
+        return signature.equals(newSignature);
     }
 }
