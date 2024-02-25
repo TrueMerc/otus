@@ -6,8 +6,8 @@ public record IntersectionOfCircleAndCircle(Circle firstCircle, Circle secondCir
 
     @Override
     public boolean isHappened() {
-        final double distanceBetweenCenters = firstCircle.center().minus(secondCircle.center()).length();
-        final double sumOfRadii = firstCircle.radius() + secondCircle().radius();
+        final double distanceBetweenCenters = firstCircle.getCenter().minus(secondCircle.getCenter()).length();
+        final double sumOfRadii = firstCircle.getRadius() + secondCircle().getRadius();
         return distanceBetweenCenters <= sumOfRadii;
     }
 }

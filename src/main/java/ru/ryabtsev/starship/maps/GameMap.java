@@ -2,14 +2,13 @@ package ru.ryabtsev.starship.maps;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Objects;
-import ru.ryabtsev.starship.actions.Command;
 import ru.ryabtsev.starship.actions.movement.Vector;
+import ru.ryabtsev.starship.objects.properties.CollisionProne;
 
 /**
  * The implementation of map that is used for game.
  */
-public class Map {
+public class GameMap {
 
     private static final double DEFAULT_REGION_SIZE = 16.0;
 
@@ -27,7 +26,7 @@ public class Map {
 
     private final double heightInUnits;
 
-    public Map(int widthInRegions, int heightInRegions) {
+    public GameMap(int widthInRegions, int heightInRegions) {
         if (widthInRegions <= 0 ||heightInRegions <= 0) {
             throw new IllegalArgumentException("Map's width and height must be positive numbers");
         }
@@ -39,7 +38,7 @@ public class Map {
                 final Vector lowerRightCorner = new Vector(
                         DEFAULT_REGION_SIZE * (width + 1), DEFAULT_REGION_SIZE * (height + 1)
                 );
-                regions.add(width * heightInRegions + height, new MapRegion(upperLeftCorner, lowerRightCorner));
+                regions.add(height * widthInRegions + width, new MapRegion(upperLeftCorner, lowerRightCorner));
             }
         }
         this.objects = new ArrayList<>(1000);
@@ -59,11 +58,15 @@ public class Map {
     }
 
     private boolean hasAcceptedCoordinates(final Vector point) {
-        return (point.x() > 0) && (point.y() > 0) && (point.x() < widthInUnits) && (point.y() < heightInUnits);
+        return (point.x() >= 0) && (point.y() >= 0) && (point.x() <= widthInUnits) && (point.y() <= heightInUnits);
     }
 
-    public Map add(final Object object) {
+    public GameMap add(final Object object) {
         objects.add(object);
+        if (object instanceof CollisionProne collisionProne) {
+            final MapRegion region = findRegionOf(collisionProne.getPosition());
+            region.add(collisionProne);
+        }
         return this;
     }
 

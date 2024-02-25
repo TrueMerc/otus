@@ -2,6 +2,7 @@ package ru.ryabtsev.starship.maps;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import ru.ryabtsev.starship.actions.movement.Vector;
 import ru.ryabtsev.starship.objects.properties.CollisionProne;
 
@@ -34,5 +35,13 @@ public class MapRegion {
 
     public void remove(final CollisionProne object) {
         objects.remove(object);
+    }
+
+    public List<CollisionProne> getCollisionProneObjects() {
+        return objects;
+    }
+
+    public List<CollisionProne> getCollisionProneObjectsExcept(final CollisionProne collisionProne) {
+        return objects.stream().filter(object -> !Objects.equals(object, collisionProne)).toList();
     }
 }
