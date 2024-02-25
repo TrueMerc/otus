@@ -49,17 +49,26 @@ public class GameMap {
     }
 
     public MapRegion findRegionOf(final Vector point) {
-         if (hasAcceptedCoordinates(point)) {
-             final int width = Double.valueOf(Math.floor(point.x() / DEFAULT_REGION_SIZE)).intValue();
-             final int height = Double.valueOf(Math.floor(point.y() / DEFAULT_REGION_SIZE)).intValue();
-             return regions.get(height * widthInRegions + width);
-         }
-         throw new IllegalArgumentException("Can't find region for point " + point);
+        final Vector correctedCoordinates = new Vector(
+                correctedValue(point.x(), widthInUnits),
+                correctedValue(point.y(), heightInUnits)
+        );
+        final int width = Double.valueOf(Math.floor(correctedCoordinates.x() / DEFAULT_REGION_SIZE)).intValue();
+        final int height = Double.valueOf(Math.floor(correctedCoordinates.y() / DEFAULT_REGION_SIZE)).intValue();
+        return regions.get(height * widthInRegions + width);
     }
 
-    private boolean hasAcceptedCoordinates(final Vector point) {
-        return (point.x() >= 0) && (point.y() >= 0) && (point.x() <= widthInUnits) && (point.y() <= heightInUnits);
+    private double correctedValue(double value, double maxValue) {
+        if (value < 0.0) {
+            return 0.0;
+        }
+        if (value > maxValue) {
+            return widthInUnits;
+        }
+        return value;
     }
+
+
 
     public GameMap add(final Object object) {
         objects.add(object);
@@ -68,6 +77,10 @@ public class GameMap {
             region.add(collisionProne);
         }
         return this;
+    }
+
+    public List<MapRegion> getRegions() {
+        return regions;
     }
 
     public <T> List<T> getAll(final Class<T> requiredClass) {

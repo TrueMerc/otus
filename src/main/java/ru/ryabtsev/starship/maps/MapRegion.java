@@ -41,7 +41,35 @@ public class MapRegion {
         return objects;
     }
 
+    public boolean containsPoint(final Vector coordinates) {
+        return (upperLeftCorner.x() - coordinates.x() <= 0)
+                && (coordinates.x() - lowerRightCorner.x() <= 0)
+                && (upperLeftCorner.y() - coordinates.y() <= 0)
+                && (coordinates.y() - lowerRightCorner.y() <= 0);
+    }
+
+    public void addIfContains(final CollisionProne object) {
+        if (containsPoint(object.getPosition())) {
+            objects.add(object);
+        }
+    }
+
     public List<CollisionProne> getCollisionProneObjectsExcept(final CollisionProne collisionProne) {
         return objects.stream().filter(object -> !Objects.equals(object, collisionProne)).toList();
+    }
+
+    public Vector getCenter() {
+        return new Vector(
+                averageOf(upperLeftCorner.x(), lowerRightCorner.x()),
+                averageOf(upperLeftCorner.y(), lowerRightCorner.y())
+        );
+    }
+
+    private double averageOf(final double first, final double second) {
+        return (first + second) / 2.0;
+    }
+
+    public double getSize() {
+        return size;
     }
 }
