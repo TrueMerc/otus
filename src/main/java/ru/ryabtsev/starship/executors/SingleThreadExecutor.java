@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 /**
  * The class that executes commands from special queue in single thread.
  */
-public class SingleThreadExecutor {
+public class SingleThreadExecutor implements Startable, Stoppable {
 
     private static final Logger logger = LoggerFactory.getLogger(SingleThreadExecutor.class);
 
@@ -37,6 +37,7 @@ public class SingleThreadExecutor {
     /**
      * Starts single thread executor job.
      */
+    @Override
     public void start() {
         isActive = true;
         thread.start();
@@ -46,6 +47,7 @@ public class SingleThreadExecutor {
     /**
      * Stops single thread executor job.
      */
+    @Override
     public void stop() {
         isActive = false;
         try {

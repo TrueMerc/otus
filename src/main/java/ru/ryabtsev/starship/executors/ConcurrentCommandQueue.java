@@ -29,13 +29,20 @@ public class ConcurrentCommandQueue implements CommandQueue {
     }
 
     /**
-     * Peeks a command which will be executed the next.
-     * @return command which wile be executed the next.
+     * Peeks the command which will be executed the next.
+     * @return the command which wile be executed the next.
      */
     @Override
     public Command peek() {
         return commands.peek();
     }
+
+    /**
+     * Polls the command which will be executed the next.
+     * @return the command which will be executed the next.
+     */
+    @Override
+    public Command poll() { return commands.poll();}
 
     /**
      * Executes next command.
