@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import lombok.SneakyThrows;
 import ru.ryabtsev.security.jwt.JsonWebToken;
-import ru.ryabtsev.starship.network.messages.ActionMessage;
 
 public class ActionAvailabilityCheck {
 
