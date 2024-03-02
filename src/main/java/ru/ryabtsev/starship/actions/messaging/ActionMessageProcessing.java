@@ -5,11 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import ru.ryabtsev.starship.actions.Command;
-import ru.ryabtsev.starship.actions.movement.Movement;
 import ru.ryabtsev.starship.context.ApplicationContext;
 import ru.ryabtsev.starship.executors.CommandQueue;
 import ru.ryabtsev.starship.network.messages.ActionMessage;
@@ -62,7 +59,8 @@ public class ActionMessageProcessing implements Command {
         }
     }
 
-    boolean constructorMatchesArgumentTypes(Constructor<?> constructor, Class<?>[] argumentTypes) {
+    private static boolean constructorMatchesArgumentTypes(
+            final Constructor<?> constructor, final Class<?>[] argumentTypes) {
         final Class<?>[] parameterTypes = constructor.getParameterTypes();
         final int length = parameterTypes.length;
         if (length == argumentTypes.length) {
