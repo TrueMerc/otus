@@ -119,18 +119,23 @@ class ActionMessageProcessorTest {
         final SimpleStarship playerOneStarship = new SimpleStarship(new Vector(0.0, 0.0), defaultVelocity);
         final SimpleStarship playerTwoStarship = new SimpleStarship(new Vector(3.0, 3.0), defaultVelocity);
 
+        registerStarship(PLAYER_ONE_CONTEXT_NAME, PLAYER_ONE_STARSHIP_ID, playerOneStarship);
+        registerStarship(PLAYER_TWO_CONTEXT_NAME, PLAYER_TWO_STARSHIP_ID, playerTwoStarship);
+
         // language=JSON
         final String orderMessage = """
                 {
                     "game": "gameId",
                     "object": "%s",
                     "action": "velocityChange",
-                    "parameters": [ 2.0, 2.0 ]
+                    "parameters": [2.0,2.0]
                 }""".formatted(PLAYER_ONE_STARSHIP_ID);
 
         // Act:
         actionMessageProcessor.process(PLAYER_ONE_NAME, orderMessage);
-        commandQueue.execute();
+        while (!commandQueue.isEmpty()) {
+            commandQueue.execute();
+        }
 
         // Assert:
         assertTrue(commandQueue.isEmpty());
