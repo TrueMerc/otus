@@ -102,6 +102,7 @@ class ActionMessageProcessorTest {
 
     @Test
     void differentPlayerObjectsRegistrationTest() {
+        // Arrange:
         final var starships = createStarships(gameMap);
         final var playerOneStarship = starships.get(0);
         final var playerTwoStarship = starships.get(1);
@@ -128,6 +129,7 @@ class ActionMessageProcessorTest {
 
     @Test
     void orderExecutionTest() {
+        // Arrange:
         final var starships = createStarships(gameMap);
         final var playerOneStarship = starships.get(0);
         final var playerTwoStarship = starships.get(1);
@@ -172,6 +174,32 @@ class ActionMessageProcessorTest {
         assertEquals(1, gameMap.getAll(Ammunition.class).size());
         final double radius = Math.sqrt(2.0) / 2.0;
         assertEquals(new Vector(radius, radius), gameMap.getAll(Ammunition.class).get(0).getPosition());
+    }
+
+    @Test
+    void orderToAnotherPlayerObjects() {
+        // Arrange:
+        final var starships = createStarships(gameMap);
+        final var playerOneStarship = starships.get(0);
+
+        // language=JSON
+        final String playerOneMovementMessage = """
+                {
+                    "game": "gameId",
+                    "object": "%s",
+                    "action": "velocityChange",
+                    "parameters": [2.0, 2.0]
+                }""".formatted(PLAYER_ONE_STARSHIP_ID);
+
+        // Act:
+        actionMessageProcessor.process(PLAYER_TWO_NAME, playerOneMovementMessage);
+
+        while (!commandQueue.isEmpty()) {
+            commandQueue.execute();
+        }
+
+        // Assert:
+        assertEquals(new Vector(1.0, 1.0), playerOneStarship.getVelocity());
     }
 
     private void registerStarship(final String contextName, final String id, final SimpleStarship starship) {
