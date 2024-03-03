@@ -41,7 +41,7 @@ public class GameMap {
                 regions.add(height * widthInRegions + width, new MapRegion(upperLeftCorner, lowerRightCorner));
             }
         }
-        this.objects = new ArrayList<>(1000);
+        this.objects = new ArrayList<>(DEFAULT_NUMBER_OF_OBJECTS);
         this.widthInRegions = widthInRegions;
         this.heightInRegions = heightInRegions;
         widthInUnits = DEFAULT_REGION_SIZE * widthInRegions;
@@ -67,8 +67,6 @@ public class GameMap {
         }
         return value;
     }
-
-
 
     public GameMap add(final Object object) {
         objects.add(object);
