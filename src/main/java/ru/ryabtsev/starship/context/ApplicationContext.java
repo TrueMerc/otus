@@ -12,5 +12,5 @@ public interface ApplicationContext {
      * @return dependency for given key ond parameters.
      * @param <T> type of returned value.
      */
-    <T> T resolve(String key, Object[] parameters);
+    <T> T resolve(String key, Object... parameters);
 }
