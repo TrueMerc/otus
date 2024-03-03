@@ -28,6 +28,9 @@ public class ActionMessageProcessing implements Command {
     public void execute() {
         final CommandQueue commandQueue = applicationContext.resolve("MessageQueue");
         final var object = applicationContext.resolve(actionMessage.getObjectId());
+        if (object == null) {
+            throw new IllegalArgumentException("Can't resolve object ID " + actionMessage.getObjectId());
+        }
         final var apiMap = (Map<String, String>) applicationContext.resolve("ApiMap");
         try {
             final Class<?> actionClass = Class.forName(apiMap.get(actionMessage.getAction()));

@@ -1,6 +1,8 @@
 package ru.ryabtsev.starship.actions.shooting;
 
 import ru.ryabtsev.starship.actions.Command;
+import ru.ryabtsev.starship.context.ApplicationContext;
+import ru.ryabtsev.starship.maps.GameMap;
 
 public class Shooting implements Command {
 
@@ -12,6 +14,6 @@ public class Shooting implements Command {
 
     @Override
     public void execute() {
-        shooter.shoot();
+        final Ammunition ammunition = shooter.shoot();
     }
 }

@@ -68,8 +68,6 @@ public class GameMap {
         return value;
     }
 
-
-
     public GameMap add(final Object object) {
         objects.add(object);
         if (object instanceof CollisionProne collisionProne) {

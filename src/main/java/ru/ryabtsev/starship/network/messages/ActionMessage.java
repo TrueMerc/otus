@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class ActionMessage {
 
-
     private final String gameId;
 
     private final String objectId;

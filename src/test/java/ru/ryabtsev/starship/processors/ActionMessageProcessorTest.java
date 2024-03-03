@@ -27,6 +27,7 @@ import ru.ryabtsev.starship.context.SimpleApplicationContext;
 import ru.ryabtsev.starship.exceptions.handlers.CommandExceptionHandler;
 import ru.ryabtsev.starship.executors.CommandQueue;
 import ru.ryabtsev.starship.executors.ConcurrentCommandQueue;
+import ru.ryabtsev.starship.maps.GameMap;
 
 class ActionMessageProcessorTest {
 
@@ -55,6 +56,8 @@ class ActionMessageProcessorTest {
     private final ApplicationContext mainContext = new SimpleApplicationContext();
 
     private final ActionMessageProcessor actionMessageProcessor = new ActionMessageProcessor(mainContext, commandQueue);
+
+    private final GameMap gameMap = new GameMap(4, 4);
 
     @BeforeEach
     void setUp() {
@@ -99,7 +102,7 @@ class ActionMessageProcessorTest {
 
     @Test
     void differentPlayerObjectsRegistrationTest() {
-        final var starships = createStarships();
+        final var starships = createStarships(gameMap);
         final var playerOneStarship = starships.get(0);
         final var playerTwoStarship = starships.get(1);
 
@@ -112,10 +115,10 @@ class ActionMessageProcessorTest {
         assertEquals(playerTwoStarship, anotherStarship);
     }
 
-    private List<SimpleStarship> createStarships() {
-        final var defaultVelocity = new Vector(1.0, 1.0);
-        final SimpleStarship playerOneStarship = new SimpleStarship(new Vector(0.0, 0.0), defaultVelocity);
-        final SimpleStarship playerTwoStarship = new SimpleStarship(new Vector(3.0, 3.0), defaultVelocity);
+    private List<SimpleStarship> createStarships(final GameMap gameMap) {
+        final var velocity = new Vector(1.0, 1.0);
+        final SimpleStarship playerOneStarship = new SimpleStarship(new Vector(0.0, 0.0), velocity, gameMap);
+        final SimpleStarship playerTwoStarship = new SimpleStarship(new Vector(3.0, 3.0), velocity, gameMap);
 
         registerStarship(PLAYER_ONE_CONTEXT_NAME, PLAYER_ONE_STARSHIP_ID, playerOneStarship);
         registerStarship(PLAYER_TWO_CONTEXT_NAME, PLAYER_TWO_STARSHIP_ID, playerTwoStarship);
@@ -125,12 +128,12 @@ class ActionMessageProcessorTest {
 
     @Test
     void orderExecutionTest() {
-        final var starships = createStarships();
+        final var starships = createStarships(gameMap);
         final var playerOneStarship = starships.get(0);
         final var playerTwoStarship = starships.get(1);
 
         // language=JSON
-        final String playerOneMessage = """
+        final String playerOneMovementMessage = """
                 {
                     "game": "gameId",
                     "object": "%s",
@@ -139,16 +142,25 @@ class ActionMessageProcessorTest {
                 }""".formatted(PLAYER_ONE_STARSHIP_ID);
 
         // language=JSON
-        final String playerTwoMessage = """
+        final String playerTwoMovementMessage = """
                 {
                     "game": "gameId",
                     "object": "%s",
                     "action": "movementStop"
                 }""".formatted(PLAYER_TWO_STARSHIP_ID);
 
+        // language=JSON
+        final String playerOneShootingMessage = """
+                {
+                    "game": "gameId",
+                    "object": "%s",
+                    "action": "shooting"
+                }""".formatted(PLAYER_ONE_STARSHIP_ID);
+
         // Act:
-        actionMessageProcessor.process(PLAYER_ONE_NAME, playerOneMessage);
-        actionMessageProcessor.process(PLAYER_TWO_NAME, playerTwoMessage);
+        actionMessageProcessor.process(PLAYER_ONE_NAME, playerOneMovementMessage);
+        actionMessageProcessor.process(PLAYER_TWO_NAME, playerTwoMovementMessage);
+        actionMessageProcessor.process(PLAYER_ONE_NAME, playerOneShootingMessage);
 
         while (!commandQueue.isEmpty()) {
             commandQueue.execute();
@@ -157,6 +169,9 @@ class ActionMessageProcessorTest {
         // Assert:
         assertEquals(new Vector(2.0, 2.0), playerOneStarship.getVelocity());
         assertEquals(new Vector(0.0, 0.0), playerTwoStarship.getVelocity());
+        assertEquals(1, gameMap.getAll(Ammunition.class).size());
+        final double radius = Math.sqrt(2.0) / 2.0;
+        assertEquals(new Vector(radius, radius), gameMap.getAll(Ammunition.class).get(0).getPosition());
     }
 
     private void registerStarship(final String contextName, final String id, final SimpleStarship starship) {
@@ -169,13 +184,18 @@ class ActionMessageProcessorTest {
     @Slf4j
     private static class SimpleStarship implements Movable, ObjectWithChangeableVelocity, Shooter {
 
+        private static final double radius = 1.0;
+
         private Vector position;
 
         private Vector velocity;
 
-        SimpleStarship(Vector position, Vector velocity) {
+        private GameMap gameMap;
+
+        SimpleStarship(Vector position, Vector velocity, GameMap gameMap) {
             this.position = position;
             this.velocity = velocity;
+            this.gameMap = gameMap;
         }
 
         @Override
@@ -205,27 +225,38 @@ class ActionMessageProcessorTest {
 
         @Override
         public Ammunition shoot() {
-            final var missile = new Missile();
+            final double multiplier = radius / velocity.length();
+            final var missile = new Missile(position.plus(velocity.multiply(multiplier)), velocity.multiply(2.0));
             log.info("Spaceship {} has shot missile {}", this, missile);
-            return new Missile();
+            gameMap.add(missile);
+            return missile;
         }
     }
 
     private static class Missile implements Ammunition {
 
+        private Vector position;
+
+        private Vector velocity;
+
+        public Missile(Vector position, Vector velocity) {
+            this.position = position;
+            this.velocity = velocity;
+        }
+
         @Override
         public Vector getPosition() {
-            return null;
+            return position;
         }
 
         @Override
         public Vector getVelocity() {
-            return null;
+            return velocity;
         }
 
         @Override
         public void moveTo(Vector position) {
-
+            this.position = position;
         }
 
         @Override
