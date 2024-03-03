@@ -16,6 +16,7 @@ import ru.ryabtsev.starship.actions.movement.Movement;
 import ru.ryabtsev.starship.actions.movement.MovementStop;
 import ru.ryabtsev.starship.actions.movement.ObjectWithChangeableVelocity;
 import ru.ryabtsev.starship.actions.movement.Vector;
+import ru.ryabtsev.starship.actions.movement.VelocityChange;
 import ru.ryabtsev.starship.actions.shooting.Ammunition;
 import ru.ryabtsev.starship.actions.shooting.Shooter;
 import ru.ryabtsev.starship.actions.shooting.Shooting;
@@ -56,6 +57,8 @@ class ActionMessageProcessorTest {
 
     @BeforeEach
     void setUp() {
+        final Function<Object[], Object> commandQueueProvider = objects -> commandQueue;
+        mainContext.<Command>resolve(DEPENDENCY_REGISTRATION, "MessageQueue", commandQueueProvider).execute();
         createChildContext(PLAYER_ONE_CONTEXT_NAME);
         createChildContext(PLAYER_TWO_CONTEXT_NAME);
         registerContextSelectionCommand();
@@ -85,6 +88,7 @@ class ActionMessageProcessorTest {
         final Map<String, String> apiMap = Map.of(
                 "movement", Movement.class.getName(),
                 "movementStop", MovementStop.class.getName(),
+                "velocityChange", VelocityChange.class.getName(),
                 "shooting", Shooting.class.getName()
         );
         final Function<Object[], Object> apiMapProvider = objects -> apiMap;
@@ -107,6 +111,30 @@ class ActionMessageProcessorTest {
 
         assertEquals(playerOneStarship, someStarship);
         assertEquals(playerTwoStarship, anotherStarship);
+    }
+
+    @Test
+    void orderExecutionTest() {
+        final var defaultVelocity = new Vector(1.0, 1.0);
+        final SimpleStarship playerOneStarship = new SimpleStarship(new Vector(0.0, 0.0), defaultVelocity);
+        final SimpleStarship playerTwoStarship = new SimpleStarship(new Vector(3.0, 3.0), defaultVelocity);
+
+        // language=JSON
+        final String orderMessage = """
+                {
+                    "game": "gameId",
+                    "object": "%s",
+                    "action": "velocityChange",
+                    "parameters": [ 2.0, 2.0 ]
+                }""".formatted(PLAYER_ONE_STARSHIP_ID);
+
+        // Act:
+        actionMessageProcessor.process(PLAYER_ONE_NAME, orderMessage);
+        commandQueue.execute();
+
+        // Assert:
+        assertTrue(commandQueue.isEmpty());
+        assertNotNull(playerTwoStarship.getVelocity());
     }
 
     private void registerStarship(final String contextName, final String id, final SimpleStarship starship) {

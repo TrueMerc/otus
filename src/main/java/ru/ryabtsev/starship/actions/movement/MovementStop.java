@@ -1,6 +1,6 @@
 package ru.ryabtsev.starship.actions.movement;
 
-public class MovementStop extends SpeedChange {
+public class MovementStop extends VelocityChange {
 
     private static final Vector ZERO_VELOCITY = new Vector(0, 0);
 

@@ -43,20 +43,21 @@ public class SimpleApplicationContext implements ApplicationContext {
 
     @Override
     public <T> T resolve(final String key, final Object[] parameters) {
-        final Function<Object[], Object> dependency = Optional.ofNullable(dependencies.get(key))
+        return (T) Optional.ofNullable(dependencies.get(key))
+                .map(dependency -> dependency.apply(parameters))
                 .orElseGet(() -> this.findParentDependency(key));
-        return (T) dependency.apply(parameters);
+
     }
 
-    private Function<Object[], Object> findParentDependency(final String key) {
+    private <T> T findParentDependency(final String key, final Object... parameters) {
         if (parent == null) {
             return null;
         }
-        if (parent.resolve(key, null) != null) {
-            return parent.resolve(key, null);
+        if (parent.resolve(key) != null) {
+            return parent.resolve(key, parameters);
         } else {
             if (parent instanceof SimpleApplicationContext typedParent) {
-                return typedParent.findParentDependency(key);
+                return typedParent.findParentDependency(key, parameters);
             } else {
                 throw new IllegalStateException("Can't process parent of type " + parent.getClass().getName());
             }

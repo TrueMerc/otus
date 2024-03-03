@@ -26,9 +26,9 @@ public class ActionMessageProcessing implements Command {
 
     @Override
     public void execute() {
-        final var commandQueue = (CommandQueue) applicationContext.resolve("MessageQueue", null);
-        final var object = applicationContext.resolve(actionMessage.getObjectId(), null);
-        final var apiMap = (Map<String, String>) applicationContext.resolve("ApiMap", null);
+        final CommandQueue commandQueue = applicationContext.resolve("MessageQueue");
+        final var object = applicationContext.resolve(actionMessage.getObjectId());
+        final var apiMap = (Map<String, String>) applicationContext.resolve("ApiMap");
         try {
             final Class<?> actionClass = Class.forName(apiMap.get(actionMessage.getAction()));
             if (!Command.class.isAssignableFrom(actionClass)) {
