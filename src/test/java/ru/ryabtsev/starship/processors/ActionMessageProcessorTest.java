@@ -2,6 +2,7 @@ package ru.ryabtsev.starship.processors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
@@ -95,14 +96,12 @@ class ActionMessageProcessorTest {
         mainContext.<Command>resolve(DEPENDENCY_REGISTRATION, "ApiMap", apiMapProvider).execute();
     }
 
+
     @Test
     void differentPlayerObjectsRegistrationTest() {
-        final var defaultVelocity = new Vector(1.0, 1.0);
-        final SimpleStarship playerOneStarship = new SimpleStarship(new Vector(0.0, 0.0), defaultVelocity);
-        final SimpleStarship playerTwoStarship = new SimpleStarship(new Vector(3.0, 3.0), defaultVelocity);
-
-        registerStarship(PLAYER_ONE_CONTEXT_NAME, PLAYER_ONE_STARSHIP_ID, playerOneStarship);
-        registerStarship(PLAYER_TWO_CONTEXT_NAME, PLAYER_TWO_STARSHIP_ID, playerTwoStarship);
+        final var starships = createStarships();
+        final var playerOneStarship = starships.get(0);
+        final var playerTwoStarship = starships.get(1);
 
         final ApplicationContext playerOneContext = mainContext.resolve(CONTEXT_SELECTION, PLAYER_ONE_CONTEXT_NAME);
         final SimpleStarship someStarship = playerOneContext.resolve(PLAYER_ONE_STARSHIP_ID);
@@ -113,8 +112,7 @@ class ActionMessageProcessorTest {
         assertEquals(playerTwoStarship, anotherStarship);
     }
 
-    @Test
-    void orderExecutionTest() {
+    private List<SimpleStarship> createStarships() {
         final var defaultVelocity = new Vector(1.0, 1.0);
         final SimpleStarship playerOneStarship = new SimpleStarship(new Vector(0.0, 0.0), defaultVelocity);
         final SimpleStarship playerTwoStarship = new SimpleStarship(new Vector(3.0, 3.0), defaultVelocity);
@@ -122,24 +120,43 @@ class ActionMessageProcessorTest {
         registerStarship(PLAYER_ONE_CONTEXT_NAME, PLAYER_ONE_STARSHIP_ID, playerOneStarship);
         registerStarship(PLAYER_TWO_CONTEXT_NAME, PLAYER_TWO_STARSHIP_ID, playerTwoStarship);
 
+        return List.of(playerOneStarship, playerTwoStarship);
+    }
+
+    @Test
+    void orderExecutionTest() {
+        final var starships = createStarships();
+        final var playerOneStarship = starships.get(0);
+        final var playerTwoStarship = starships.get(1);
+
         // language=JSON
-        final String orderMessage = """
+        final String playerOneMessage = """
                 {
                     "game": "gameId",
                     "object": "%s",
                     "action": "velocityChange",
-                    "parameters": [2.0,2.0]
+                    "parameters": [2.0, 2.0]
                 }""".formatted(PLAYER_ONE_STARSHIP_ID);
 
+        // language=JSON
+        final String playerTwoMessage = """
+                {
+                    "game": "gameId",
+                    "object": "%s",
+                    "action": "movementStop"
+                }""".formatted(PLAYER_TWO_STARSHIP_ID);
+
         // Act:
-        actionMessageProcessor.process(PLAYER_ONE_NAME, orderMessage);
+        actionMessageProcessor.process(PLAYER_ONE_NAME, playerOneMessage);
+        actionMessageProcessor.process(PLAYER_TWO_NAME, playerTwoMessage);
+
         while (!commandQueue.isEmpty()) {
             commandQueue.execute();
         }
 
         // Assert:
-        assertTrue(commandQueue.isEmpty());
-        assertNotNull(playerTwoStarship.getVelocity());
+        assertEquals(new Vector(2.0, 2.0), playerOneStarship.getVelocity());
+        assertEquals(new Vector(0.0, 0.0), playerTwoStarship.getVelocity());
     }
 
     private void registerStarship(final String contextName, final String id, final SimpleStarship starship) {
