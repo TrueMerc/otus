@@ -3,7 +3,6 @@ package ru.ryabtsev.starship.context;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import lombok.SneakyThrows;
@@ -98,8 +97,8 @@ class SimpleApplicationContextTest {
         assertNotNull(firstContext);
         assertNotNull(secondContext);
 
-        assertEquals(1L, firstContext.<Long>resolve(ONE, null).longValue());
-        assertEquals(1L, secondContext.<Long>resolve(ONE, null).longValue());
+        assertEquals(1L, firstContext.<Long>resolve(ONE).longValue());
+        assertEquals(1L, secondContext.<Long>resolve(ONE).longValue());
     }
 
     @Test

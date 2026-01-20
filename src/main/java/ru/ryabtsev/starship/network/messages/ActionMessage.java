@@ -9,9 +9,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * The class that represents message that has been sent by a client.
+ */
 @Getter
 public class ActionMessage {
-
 
     private final String gameId;
 

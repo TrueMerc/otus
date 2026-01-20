@@ -116,7 +116,6 @@ class DefaultHttpServerTest {
         final CommandQueue commandQueue = new ConcurrentCommandQueue(new CommandExceptionHandler());
         final Function<Object[], Object> commandQueueProvider = (objects) -> commandQueue;
         context.<Command>resolve(registration, new Object[] { "MessageQueue", commandQueueProvider}).execute();
-        ;
 
         final Starship starship = new Starship(new Vector(0., 0.), new Vector(1., 1.));
         final Function<Object[], Object> starshipProvider = (objects) -> starship;

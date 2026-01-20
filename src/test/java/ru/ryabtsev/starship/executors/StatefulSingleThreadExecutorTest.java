@@ -23,15 +23,18 @@ class StatefulSingleThreadExecutorTest {
         final CommandQueue commandQueue = new ConcurrentCommandQueue(new CommandExceptionHandler());
         final CommandQueue anotherCommandQueue = new ConcurrentCommandQueue(new CommandExceptionHandler());
         final List<Integer> numbers = new ArrayList<>();
+        // Normal state
         IntStream.range(0, 8).boxed().map(number -> new NumberAddition(numbers, number)).forEach(commandQueue::add);
         final StatefulSingleThreadExecutor executor = new StatefulSingleThreadExecutor(commandQueue);
+        // Redirection state
         commandQueue.add(new Redirection(executor, anotherCommandQueue));
         IntStream.range(8, 10).boxed().map(number -> new NumberAddition(numbers, number)).forEach(commandQueue::add);
+        // Normal state again
         commandQueue.add(new NormalStateRestoration(executor));
         IntStream.range(10, 12).boxed().map(number -> new NumberAddition(numbers, number)).forEach(commandQueue::add);
+        // Execution stop
         commandQueue.add(new CompositeCommand(new ThreadNotification(this), new ExecutionStop(executor)));
         IntStream.range(12, 14).boxed().map(number -> new NumberAddition(numbers, number)).forEach(commandQueue::add);
-
 
         // Act:
         synchronized (this) {
